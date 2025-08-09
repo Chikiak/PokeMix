@@ -24,6 +24,27 @@
     justify-content: center;
     padding: 2rem;
     background: rgba(255, 255, 255, 0.05);
+    position: relative;
+}
+
+.main-content::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -1px;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 15px solid transparent;
+    border-bottom: 15px solid transparent;
+    border-right: 15px solid rgba(255, 255, 255, 0.95);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 20;
+}
+
+.main-content.pokemon-selected::before {
+    opacity: 1;
 }
 
 .welcome-message {

@@ -1,65 +1,53 @@
-﻿import { useState, useEffect, useRef } from 'react';
+// client/src/hooks/useCenterDetection.ts
+
+import { useState, useEffect, useRef } from 'react';
 import { type PokemonListItem } from '../types/pokemon';
 
 export function useCenterDetection(pokemonList: PokemonListItem[]) {
     const [centerPokemon, setCenterPokemon] = useState<PokemonListItem | null>(null);
-    const listRef = useRef<HTMLDivElement>(null);
+    const listRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        const handleScroll = () => {
-            if (!listRef.current || pokemonList.length === 0) return;
+        const listElement = listRef.current;
+        if (!listElement) return;
 
-            const listElement = listRef.current;
-            const listRect = listElement.getBoundingClientRect();
-            const listCenter = listRect.top + listRect.height / 2;
+        const marker = listElement.parentElement?.querySelector('.center-marker');
+        if (!marker) return;
 
-            const items = listElement.querySelectorAll('.pokemon-item');
-            let closestItem: PokemonListItem | null = null;
-            let closestDistance = Infinity;
+       const handleScroll = () => {
+            const markerRect = marker.getBoundingClientRect();
+            const markerY = markerRect.top + markerRect.height / 2;
 
-            for (let i = 0; i < Math.min(items.length, pokemonList.length); i++) {
-                const item = items[i];
-                const pokemon = pokemonList[i];
+            let closestPokemon: PokemonListItem | null = null;
+            let smallestDistance = Infinity;
 
-                if (!item || !pokemon) continue;
+            Array.from(listElement.children).forEach((item) => {
+                if (item.classList.contains('pokemon-item')) {
+                    const itemRect = item.getBoundingClientRect();
+                    const itemCenterY = itemRect.top + itemRect.height / 2;
+                    const distance = Math.abs(itemCenterY - markerY);
 
-                const itemRect = item.getBoundingClientRect();
-                const itemCenter = itemRect.top + itemRect.height / 2;
-                const distance = Math.abs(itemCenter - listCenter);
-
-                if (distance < closestDistance) {
-                    closestDistance = distance;
-                    closestItem = pokemon;
+                    if (distance < smallestDistance) {
+                        smallestDistance = distance;
+                        const pokemonName = (item.querySelector('.pokemon-name') as HTMLElement)?.innerText.toLowerCase();
+                        if (pokemonName) {
+                            closestPokemon = pokemonList.find(p => p.name.toLowerCase() === pokemonName) || null;
+                        }
+                    }
                 }
-            }
+            });
 
-            if (closestItem && (!centerPokemon || closestItem.name !== centerPokemon.name)) {
-                console.log(`Centro detectado: ${closestItem.name}`);
-                setCenterPokemon(closestItem);
-            }
+            setCenterPokemon(closestPokemon);
         };
 
-        const listElement = listRef.current;
-        if (listElement) {
-            listElement.addEventListener('scroll', handleScroll);
+        handleScroll();
 
-            const timer = setTimeout(handleScroll, 100);
+        listElement.addEventListener('scroll', handleScroll, { passive: true });
+        return () => {
+            listElement.removeEventListener('scroll', handleScroll);
+        };
 
-            return () => {
-                listElement.removeEventListener('scroll', handleScroll);
-                clearTimeout(timer);
-            };
-        }
-    }, [pokemonList, centerPokemon]);
-
-    useEffect(() => {
-        if (pokemonList.length > 0 && !centerPokemon) {
-            const firstPokemon = pokemonList[0];
-            if (firstPokemon) {
-                setCenterPokemon(firstPokemon);
-            }
-        }
-    }, [pokemonList.length, centerPokemon]);
+    }, [pokemonList]);
 
     return { centerPokemon, listRef };
 }

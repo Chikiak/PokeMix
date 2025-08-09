@@ -27,7 +27,7 @@ function PokemonDetails({ pokemon }: PokemonDetailsProps) {
     };
 
     return (
-        <div className="pokemon-details">
+        <div className="pokemon-details-container">
             <div className="pokemon-header">
                 <img
                     src={pokemon.sprites.other['official-artwork'].front_default || pokemon.sprites.front_default}

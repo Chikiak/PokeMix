@@ -6,6 +6,19 @@
     flex-direction: column;
     height: 100vh; /* Ocupar toda la altura de la ventana */
     max-height: 100vh;
+    position: relative;
+}
+
+.center-marker {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: red;
+    transform: translateY(-50%);
+    z-index: -1;
+    pointer-events: none;
 }
 
 .app-title {
@@ -31,6 +44,11 @@
     padding: 1rem;
     scroll-behavior: smooth;
     height: 100%;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
 }
 
 .pokemon-item {
@@ -40,12 +58,20 @@
     padding: 1rem 1.5rem;
     margin-bottom: 0.5rem;
     background: white;
+    border: 2px solid transparent;
     border-radius: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     position: relative;
-    border: 2px solid transparent;
+    opacity: 0;
+    transform: translateX(-30px);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.pokemon-item.is-visible {
+    opacity: 1;
+    transform: translateX(0);
 }
 
 .pokemon-item:hover {
@@ -53,11 +79,10 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     background: linear-gradient(45deg, #f8f9ff, #e8f0fe);
 }
-
-.pokemon-item.center-highlight {
+.pokemon-item.center-highlight.is-visible {
     background: linear-gradient(45deg, #667eea, #764ba2);
     color: white;
-    transform: translateY(-3px) scale(1.02);
+    transform: translateX(15px) scale(1.05);
     box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
     border-color: rgba(255, 255, 255, 0.3);
 }

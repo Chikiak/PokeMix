@@ -1,4 +1,4 @@
-﻿import React, { useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { type PokemonListItem } from '../types/pokemon';
 
 interface SidebarProps {
@@ -33,18 +33,18 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>((props, listRef) 
 
     return (
         <div className="sidebar">
+            <div className={"center-marker"}></div>
             <h1 className="app-title">PokéMix</h1>
             <div className="pokemon-list" ref={listRef}>
                 {pokemonList.map((pokemon, index) => {
                     const isLast = pokemonList.length === index + 1;
-                    // ✅ Arreglamos el error aquí: verificamos que centerPokemon no sea null
                     const isCenter = centerPokemon !== null && centerPokemon.name === pokemon.name;
 
                     return (
                         <PokemonListItem
                             key={`${pokemon.name}-${index}`}
                             pokemon={pokemon}
-                            isCenter={isCenter} // Ahora siempre es boolean
+                            isCenter={isCenter}
                             ref={isLast ? lastPokemonElementRef : null}
                         />
                     );
@@ -67,18 +67,64 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>((props, listRef) 
     );
 });
 
-const PokemonListItem = React.forwardRef<HTMLDivElement, {
-    pokemon: PokemonListItem;
-    isCenter: boolean;
-}>(({ pokemon, isCenter }, ref) => {
+const PokemonListItem = React.forwardRef<
+    HTMLDivElement,
+    {
+        pokemon: PokemonListItem;
+        isCenter: boolean;
+    }
+>(({ pokemon, isCenter }, ref) => {
     const pokemonId = pokemon.url.split('/').filter(Boolean).pop();
+    const itemRef = useRef<HTMLDivElement | null>(null);
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.unobserve(entry.target);
+                }
+            },
+            {
+                rootMargin: '0px',
+                threshold: 0.1,
+            }
+        );
+
+        if (itemRef.current) {
+            observer.observe(itemRef.current);
+        }
+
+        return () => {
+            if (itemRef.current) {
+                observer.unobserve(itemRef.current);
+            }
+        };
+    }, []);
+
+    const setRefs = useCallback(
+        (node: HTMLDivElement) => {
+            itemRef.current = node;
+            if (typeof ref === 'function') {
+                ref(node);
+            } else if (ref) {
+                ref.current = node;
+            }
+        },
+        [ref]
+    );
 
     return (
         <div
-            ref={ref}
-            className={`pokemon-item ${isCenter ? 'center-highlight' : ''}`}
+            ref={setRefs}
+            className={`pokemon-item ${isVisible ? 'is-visible' : ''} ${
+                isCenter ? 'center-highlight' : ''
+            }`}
         >
-            <span className="pokemon-number">#{pokemonId?.padStart(3, '0') || '???'}</span>
+            <span className="pokemon-number">
+                #{pokemonId?.padStart(3, '0') || '???'}
+            </span>
             <span className="pokemon-name">{pokemon.name}</span>
         </div>
     );

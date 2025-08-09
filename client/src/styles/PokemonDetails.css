@@ -1,4 +1,15 @@
-﻿.pokemon-details {
+﻿@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pokemon-details-container {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
     padding: 2rem;
@@ -6,7 +17,7 @@
     width: 100%;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     backdrop-filter: blur(20px);
-    animation: slideInRight 0.5s ease-out;
+    animation: fade-in-up 0.5s ease-out forwards;
 }
 
 .pokemon-header {
@@ -132,3 +143,4 @@
         justify-content: center;
     }
 }
+

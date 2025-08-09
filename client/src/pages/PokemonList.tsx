@@ -4,6 +4,7 @@ import { pokemonApi } from '../services/pokemonApi';
 import Sidebar from '../components/Sidebar';
 import PokemonDetails from '../components/PokemonDetails';
 import { useCenterDetection } from '../hooks/useCenterDetection';
+import { useDebounce } from '../hooks/useDebounce';
 import {type PokemonListItem, type PokemonDetails as PokemonDetailsType } from '../types/pokemon';
 
 function PokemonList() {
@@ -16,17 +17,18 @@ function PokemonList() {
 
     const LIMIT = 20;
     const { centerPokemon, listRef } = useCenterDetection(pokemonList);
+    const debouncedCenterPokemon = useDebounce(centerPokemon, 500);
 
     useEffect(() => {
         loadPokemon(0, true);
     }, []);
 
     useEffect(() => {
-        if (centerPokemon) {
-            console.log(`Cargando detalles de: ${centerPokemon.name}`);
-            loadPokemonDetails(centerPokemon);
+        if (debouncedCenterPokemon) {
+            console.log(`Cargando detalles (debounced) de: ${debouncedCenterPokemon.name}`);
+            loadPokemonDetails(debouncedCenterPokemon);
         }
-    }, [centerPokemon]);
+    }, [debouncedCenterPokemon]);
 
     const loadPokemon = async (currentOffset: number, isInitial = false) => {
         if (loading && !isInitial) return;
@@ -95,9 +97,12 @@ function PokemonList() {
                 />
             </div>
 
-            <div className="main-content">
+            <div className={`main-content ${selectedPokemon ? 'pokemon-selected' : ''}`}>
                 {selectedPokemon ? (
-                    <PokemonDetails pokemon={selectedPokemon} />
+                    <PokemonDetails
+                        key={selectedPokemon.id}
+                        pokemon={selectedPokemon}
+                    />
                 ) : (
                     <div className="welcome-message">
                         <h2>Explorando...</h2>
