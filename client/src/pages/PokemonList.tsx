@@ -1,5 +1,5 @@
-﻿// src/pages/PokemonList.tsx
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { pokemonApi } from '../services/pokemonApi';
 import Sidebar from '../components/Sidebar';
 import PokemonDetails from '../components/PokemonDetails';
@@ -8,20 +8,26 @@ import { useDebounce } from '../hooks/useDebounce';
 import {type PokemonListItem, type PokemonDetails as PokemonDetailsType } from '../types/pokemon';
 
 function PokemonList() {
-    const [pokemonList, setPokemonList] = useState<PokemonListItem[]>([]);
-    const [selectedPokemon, setSelectedPokemon] = useState<PokemonDetailsType | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [initialLoading, setInitialLoading] = useState(true);
-    const [offset, setOffset] = useState(0);
-    const [hasMore, setHasMore] = useState(true);
+    const {
+        data,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        status,
+    } = useInfiniteQuery({
+        queryKey: ['pokemonList'],
+        queryFn: pokemonApi.getPokemonList,
+        getNextPageParam: (lastPage) => lastPage.nextPageParam,
+        initialPageParam: 0,
+    });
 
-    const LIMIT = 20;
+    const [selectedPokemon, setSelectedPokemon] = useState<PokemonDetailsType | null>(null);
+
+    const pokemonList = data?.pages.flatMap(page => page.results) ?? [];
+
     const { centerPokemon, listRef } = useCenterDetection(pokemonList);
     const debouncedCenterPokemon = useDebounce(centerPokemon, 500);
-
-    useEffect(() => {
-        loadPokemon(0, true);
-    }, []);
 
     useEffect(() => {
         if (debouncedCenterPokemon) {
@@ -29,38 +35,6 @@ function PokemonList() {
             loadPokemonDetails(debouncedCenterPokemon);
         }
     }, [debouncedCenterPokemon]);
-
-    const loadPokemon = async (currentOffset: number, isInitial = false) => {
-        if (loading && !isInitial) return;
-
-        setLoading(true);
-        if (isInitial) setInitialLoading(true);
-
-        try {
-            console.log(`Cargando Pokémon desde offset: ${currentOffset}`);
-            const data = await pokemonApi.getPokemonList(LIMIT, currentOffset);
-
-            if (isInitial) {
-                setPokemonList(data.results);
-                setOffset(LIMIT);
-            } else {
-                setPokemonList(prev => [...prev, ...data.results]);
-                setOffset(currentOffset + LIMIT);
-            }
-
-            if (data.results.length < LIMIT || currentOffset + LIMIT >= 1010) {
-                setHasMore(false);
-            }
-
-            console.log(`Cargados ${data.results.length} Pokémon. Total: ${isInitial ? data.results.length : pokemonList.length + data.results.length}`);
-
-        } catch (error) {
-            console.error('Error cargando Pokémon:', error);
-        } finally {
-            setLoading(false);
-            if (isInitial) setInitialLoading(false);
-        }
-    };
 
     const loadPokemonDetails = async (pokemon: PokemonListItem) => {
         try {
@@ -74,24 +48,22 @@ function PokemonList() {
         }
     };
 
-    const handleLoadMore = () => {
-        if (!loading && hasMore) {
-            loadPokemon(offset);
-        }
-    };
-
-    if (initialLoading) {
-        return <div className="loading">Cargando Pokémon...</div>;
+    if (status === 'pending') {
+        return <div className={"loading"}>Cargando Pokémon...</div>;
     }
+    if (status === 'error') {
+        return <div className={"loading"}>Error: {error.message}</div>;
+    }
+
 
     return (
         <div className="app-container">
             <div className="sidebar-wrapper">
                 <Sidebar
                     pokemonList={pokemonList}
-                    onLoadMore={handleLoadMore}
-                    hasMore={hasMore}
-                    loading={loading}
+                    onLoadMore={fetchNextPage}
+                    hasMore={hasNextPage}
+                    loading={isFetchingNextPage}
                     centerPokemon={centerPokemon}
                     ref={listRef}
                 />
