@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+﻿import {useState, useEffect, useCallback} from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { pokemonApi } from '../services/pokemonApi';
 import Sidebar from '../components/Sidebar';
@@ -48,13 +48,38 @@ function PokemonList() {
         }
     };
 
+    const handlePokemonClick = useCallback((pokemon: PokemonListItem) => {
+        const listElement = listRef.current;
+        if (!listElement) return;
+
+        const pokemonElement = listElement.querySelector(`[data-pokemon-name="${pokemon.name}"]`) as HTMLElement;
+        const markerElement = listElement.parentElement?.querySelector('.center-marker') as HTMLElement;
+
+        if (!pokemonElement || !markerElement) return;
+
+        const listRect = listElement.getBoundingClientRect();
+        const markerRect = markerElement.getBoundingClientRect();
+        const pokemonRect = pokemonElement.getBoundingClientRect();
+
+        const markerCenterY = markerRect.top + (markerRect.height / 2) - listRect.top;
+        const pokemonCenterY = pokemonRect.top + (pokemonRect.height / 2) - listRect.top;
+
+        const currentScrollTop = listElement.scrollTop;
+        const scrollTop = currentScrollTop + pokemonCenterY - markerCenterY;
+
+        listElement.scroll({
+            top: scrollTop,
+            behavior: 'smooth',
+        });
+    }, [listRef]);
+
+
     if (status === 'pending') {
         return <div className={"loading"}>Cargando Pokémon...</div>;
     }
     if (status === 'error') {
         return <div className={"loading"}>Error: {error.message}</div>;
     }
-
 
     return (
         <div className="app-container">
@@ -65,6 +90,7 @@ function PokemonList() {
                     hasMore={hasNextPage}
                     loading={isFetchingNextPage}
                     centerPokemon={centerPokemon}
+                    onPokemonClick={handlePokemonClick}
                     ref={listRef}
                 />
             </div>

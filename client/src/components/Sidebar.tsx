@@ -7,10 +7,11 @@ interface SidebarProps {
     hasMore: boolean;
     loading: boolean;
     centerPokemon: PokemonListItem | null;
+    onPokemonClick: (pokemon: PokemonListItem) => void;
 }
 
 const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>((props, listRef) => {
-    const { pokemonList, onLoadMore, hasMore, loading, centerPokemon } = props;
+    const { pokemonList, onLoadMore, hasMore, loading, centerPokemon, onPokemonClick } = props;
     const observer = useRef<IntersectionObserver | null>(null);
 
     const lastPokemonElementRef = useCallback((node: HTMLDivElement | null) => {
@@ -36,6 +37,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>((props, listRef) 
             <div className={"center-marker"}></div>
             <h1 className="app-title">PokéMix</h1>
             <div className="pokemon-list" ref={listRef}>
+
+                <div className="scroll-spacer-top" />
                 {pokemonList.map((pokemon, index) => {
                     const isLast = pokemonList.length === index + 1;
                     const isCenter = centerPokemon !== null && centerPokemon.name === pokemon.name;
@@ -45,10 +48,12 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>((props, listRef) 
                             key={`${pokemon.name}-${index}`}
                             pokemon={pokemon}
                             isCenter={isCenter}
+                            onClick={() => onPokemonClick(pokemon)}
                             ref={isLast ? lastPokemonElementRef : null}
                         />
                     );
                 })}
+                <div className="scroll-spacer-bottom" />
 
                 {loading && (
                     <div className="loading-more">
@@ -72,8 +77,9 @@ const PokemonListItem = React.forwardRef<
     {
         pokemon: PokemonListItem;
         isCenter: boolean;
+        onClick: () => void;
     }
->(({ pokemon, isCenter }, ref) => {
+>(({ pokemon, isCenter, onClick }, ref) => {
     const pokemonId = pokemon.url.split('/').filter(Boolean).pop();
     const itemRef = useRef<HTMLDivElement | null>(null);
     const [isVisible, setIsVisible] = useState(false);
@@ -121,6 +127,8 @@ const PokemonListItem = React.forwardRef<
             className={`pokemon-item ${isVisible ? 'is-visible' : ''} ${
                 isCenter ? 'center-highlight' : ''
             }`}
+            onClick={onClick}
+            data-pokemon-name={pokemon.name}
         >
             <span className="pokemon-number">
                 #{pokemonId?.padStart(3, '0') || '???'}

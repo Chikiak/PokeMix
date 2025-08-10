@@ -1,4 +1,4 @@
-﻿.app-container {
+.app-container {
     display: flex;
     height: 100vh;
     max-width: 1400px;
@@ -15,6 +15,7 @@
     display: flex;
     flex-direction: column;
     min-width: 350px;
+    position: relative;
 }
 
 .main-content {
@@ -27,23 +28,24 @@
     position: relative;
 }
 
-.main-content::before {
+.sidebar-wrapper::before {
     content: '';
     position: absolute;
     top: 50%;
-    left: -1px;
+    right: -15px;
     transform: translateY(-50%);
     width: 0;
     height: 0;
     border-top: 15px solid transparent;
     border-bottom: 15px solid transparent;
-    border-right: 15px solid rgba(255, 255, 255, 0.95);
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
+    border-left: 15px solid rgba(255, 255, 255, 0.95);
     z-index: 20;
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0;
+    pointer-events: none;
 }
 
-.main-content.pokemon-selected::before {
+.app-container:has(.main-content.pokemon-selected) .sidebar-wrapper::before {
     opacity: 1;
 }
 

@@ -4,7 +4,7 @@
     border-right: 1px solid rgba(255, 255, 255, 0.18);
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Ocupar toda la altura de la ventana */
+    height: 100vh;
     max-height: 100vh;
     position: relative;
 }
@@ -60,13 +60,12 @@
     background: white;
     border: 2px solid transparent;
     border-radius: 12px;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     position: relative;
     opacity: 0;
     transform: translateX(-30px);
-    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease-out, transform 0.4s ease-out;
 }
 
 .pokemon-item.is-visible {
@@ -95,7 +94,7 @@
     bottom: 0;
     width: 4px;
     background: linear-gradient(to bottom, #fff, rgba(255, 255, 255, 0.7));
-    border-radius: 0 12px 12px 0;
+    border-radius: 12px 0 0 12px; /* <-- ¡Esta es la corrección! */
 }
 
 .pokemon-number {
@@ -183,4 +182,13 @@
 .end-message p {
     margin: 0;
     font-size: 0.9rem;
+}
+
+.scroll-spacer-top {
+    height: calc(50vh - 11rem);
+    flex-shrink: 0;
+}
+.scroll-spacer-bottom {
+    height: calc(50vh - 10rem);
+    flex-shrink: 0;
 }
