@@ -36,10 +36,13 @@ export function usePokemonData() {
 
     const loadPokemonDetails = async (pokemon: PokemonListItem) => {
         try {
-            const pokemonId = pokemon.url.split('/').filter(Boolean).pop();
-            if (!pokemonId) return;
+            const pokemonIdString = pokemon.url.split('/').filter(Boolean).pop();
+            if (!pokemonIdString) return;
 
-            const details = await pokemonApi.getPokemonDetail(pokemonId);
+            const numericId = parseInt(pokemonIdString, 10);
+            if (isNaN(numericId)) return;
+
+            const details = await pokemonApi.getPokemonDetail(numericId);
             setSelectedPokemon(details);
         } catch (error) {
             console.error('Error cargando detalles del Pokémon:', error);
