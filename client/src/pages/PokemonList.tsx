@@ -1,84 +1,20 @@
-﻿import {useState, useEffect, useCallback} from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { pokemonApi } from '../services/pokemonApi';
+﻿import { usePokemonData } from '../hooks/usePokemonData';
 import Sidebar from '../components/Sidebar';
 import PokemonDetails from '../components/PokemonDetails';
-import { useCenterDetection } from '../hooks/useCenterDetection';
-import { useDebounce } from '../hooks/useDebounce';
-import {type PokemonListItem, type PokemonDetails as PokemonDetailsType } from '../types/pokemon';
 
 function PokemonList() {
-    const {
-        data,
-        error,
-        fetchNextPage,
-        hasNextPage,
-        isFetchingNextPage,
-        status,
-    } = useInfiniteQuery({
-        queryKey: ['pokemonList'],
-        queryFn: pokemonApi.getPokemonList,
-        getNextPageParam: (lastPage) => lastPage.nextPageParam,
-        initialPageParam: 0,
-    });
+    const { queryResult, fetchNextPage, selectedPokemon, centerPokemon, listRef, handlePokemonClick } = usePokemonData();
 
-    const [selectedPokemon, setSelectedPokemon] = useState<PokemonDetailsType | null>(null);
+    const pokemonList = queryResult.data?.pages.flatMap(page => page.results) ?? [];
 
-    const pokemonList = data?.pages.flatMap(page => page.results) ?? [];
-
-    const { centerPokemon, listRef } = useCenterDetection(pokemonList);
-    const debouncedCenterPokemon = useDebounce(centerPokemon, 500);
-
-    useEffect(() => {
-        if (debouncedCenterPokemon) {
-            console.log(`Cargando detalles (debounced) de: ${debouncedCenterPokemon.name}`);
-            loadPokemonDetails(debouncedCenterPokemon);
-        }
-    }, [debouncedCenterPokemon]);
-
-    const loadPokemonDetails = async (pokemon: PokemonListItem) => {
-        try {
-            const pokemonId = pokemon.url.split('/').filter(Boolean).pop();
-            if (!pokemonId) return;
-
-            const details = await pokemonApi.getPokemonDetail(pokemonId);
-            setSelectedPokemon(details);
-        } catch (error) {
-            console.error('Error cargando detalles del Pokémon:', error);
-        }
-    };
-
-    const handlePokemonClick = useCallback((pokemon: PokemonListItem) => {
-        const listElement = listRef.current;
-        if (!listElement) return;
-
-        const pokemonElement = listElement.querySelector(`[data-pokemon-name="${pokemon.name}"]`) as HTMLElement;
-        const markerElement = listElement.parentElement?.querySelector('.center-marker') as HTMLElement;
-
-        if (!pokemonElement || !markerElement) return;
-
-        const listRect = listElement.getBoundingClientRect();
-        const markerRect = markerElement.getBoundingClientRect();
-        const pokemonRect = pokemonElement.getBoundingClientRect();
-
-        const markerCenterY = markerRect.top + (markerRect.height / 2) - listRect.top;
-        const pokemonCenterY = pokemonRect.top + (pokemonRect.height / 2) - listRect.top;
-
-        const currentScrollTop = listElement.scrollTop;
-        const scrollTop = currentScrollTop + pokemonCenterY - markerCenterY;
-
-        listElement.scroll({
-            top: scrollTop,
-            behavior: 'smooth',
-        });
-    }, [listRef]);
-
-
-    if (status === 'pending') {
+    if (queryResult.status === 'pending') {
         return <div className={"loading"}>Cargando Pokémon...</div>;
     }
-    if (status === 'error') {
-        return <div className={"loading"}>Error: {error.message}</div>;
+    if (queryResult.status === 'error') {
+        if (queryResult.error) {
+            return <div className={"loading"}>Error: {queryResult.error.message}</div>;
+        }
+        return <div className={"loading"}>Ocurrio un error desconocido</div>;
     }
 
     return (
@@ -87,8 +23,8 @@ function PokemonList() {
                 <Sidebar
                     pokemonList={pokemonList}
                     onLoadMore={fetchNextPage}
-                    hasMore={hasNextPage}
-                    loading={isFetchingNextPage}
+                    hasMore={queryResult.hasNextPage}
+                    loading={queryResult.isFetchingNextPage}
                     centerPokemon={centerPokemon}
                     onPokemonClick={handlePokemonClick}
                     ref={listRef}
