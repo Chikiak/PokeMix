@@ -1,8 +1,8 @@
 ﻿import { usePokemonData } from '../hooks/usePokemonData';
 import Sidebar from '../components/Sidebar';
-import PokemonDetails from '../components/PokemonDetails';
+import PokemonPreview from '../components/PokemonPreview.tsx';
 
-function PokemonList() {
+function HomePage() {
     const { queryResult, fetchNextPage, selectedPokemon, centerPokemon, listRef, handlePokemonClick } = usePokemonData();
 
     const pokemonList = queryResult.data?.pages.flatMap(page => page.results) ?? [];
@@ -33,7 +33,7 @@ function PokemonList() {
 
             <div className={`main-content ${selectedPokemon ? 'pokemon-selected' : ''}`}>
                 {selectedPokemon ? (
-                    <PokemonDetails
+                    <PokemonPreview
                         key={selectedPokemon.id}
                         pokemon={selectedPokemon}
                     />
@@ -53,4 +53,4 @@ function PokemonList() {
     );
 }
 
-export default PokemonList;
+export default HomePage;

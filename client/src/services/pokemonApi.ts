@@ -18,9 +18,13 @@ export const pokemonApi = {
         }
     },
 
-    getPokemonDetail: async (id: number | string): Promise<PokemonDetails> => {
+    getPokemonDetail: async (id: number): Promise<PokemonDetails> => {
         const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
         if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error(`No se encontró ningún Pokémon con el ID "${id}".`);
+            }
+
             throw new Error(`Error fetching pokemon ${id}`);
         }
         return response.json();

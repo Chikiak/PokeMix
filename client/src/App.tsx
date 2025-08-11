@@ -1,8 +1,15 @@
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage.tsx';
+import PokemonDetailPage from './pages/PokemonDetailPage';
 import './styles/App.css';
-import PokemonList from './pages/PokemonList';
 
 function App() {
-    return <PokemonList />;
+    return (
+        <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/pokemon/:pokemonId" element={<PokemonDetailPage />} />
+        </Routes>
+    )
 }
 
 export default App;
