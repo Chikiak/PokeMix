@@ -1,6 +1,9 @@
 ﻿import { usePokemonData } from '../hooks/usePokemonData';
 import Sidebar from '../components/Sidebar';
 import PokemonPreview from '../components/PokemonPreview.tsx';
+import LoadingSpinner from "../components/common/LoadingSpinner.tsx";
+import ErrorMessage from "../components/common/ErrorMessage.tsx";
+import WelcomeMessage from "../components/common/WelcomeMessage.tsx";
 
 function HomePage() {
     const { queryResult, fetchNextPage, selectedPokemon, centerPokemon, listRef, handlePokemonClick } = usePokemonData();
@@ -8,13 +11,11 @@ function HomePage() {
     const pokemonList = queryResult.data?.pages.flatMap(page => page.results) ?? [];
 
     if (queryResult.status === 'pending') {
-        return <div className={"loading"}>Cargando Pokémon...</div>;
+        return <LoadingSpinner />;
     }
     if (queryResult.status === 'error') {
-        if (queryResult.error) {
-            return <div className={"loading"}>Error: {queryResult.error.message}</div>;
-        }
-        return <div className={"loading"}>Ocurrio un error desconocido</div>;
+        const errorMessage = queryResult.error?.message || 'Ocurrió un error desconocido';
+        return <ErrorMessage message={errorMessage} />;
     }
 
     return (
@@ -38,15 +39,7 @@ function HomePage() {
                         pokemon={selectedPokemon}
                     />
                 ) : (
-                    <div className="welcome-message">
-                        <h2>Explorando...</h2>
-                        <p>Haz scroll en la lista para ver los detalles de cada Pokémon</p>
-                        {centerPokemon && (
-                            <p style={{ marginTop: '1rem', opacity: 0.8 }}>
-                                Pokémon en el centro: <strong>{centerPokemon.name}</strong>
-                            </p>
-                        )}
-                    </div>
+                    <WelcomeMessage />
                 )}
             </div>
         </div>

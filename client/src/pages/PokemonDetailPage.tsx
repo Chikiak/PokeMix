@@ -1,6 +1,8 @@
 ﻿import { typeColors } from '../lib/constants';
 import { useParams } from 'react-router-dom';
 import { usePokemonDetail } from '../hooks/usePokemonDetail';
+import LoadingSpinner from "../components/common/LoadingSpinner.tsx";
+import ErrorMessage from "../components/common/ErrorMessage.tsx";
 
 function PokemonDetailPage() {
     const { pokemonId } = useParams();
@@ -10,15 +12,16 @@ function PokemonDetailPage() {
     const { data: pokemon, status, error } = usePokemonDetail(numericId);
 
     if (pokemonId && isNaN(parseInt(pokemonId, 10)))  {
-        return <div>Invalid pokemon ID</div>
+        return <ErrorMessage message={`El ID de Pokémon "${pokemonId}" no es válido.`} />
     }
 
     if (status === 'pending') {
-        return <div>Loading...</div>
+        return <LoadingSpinner/>
     }
 
     if (status === 'error') {
-        return <div>Error: {error?.message}</div>
+        const errorMessage = error.message || 'Ocurrió un error desconocido';
+        return <ErrorMessage message={errorMessage} />;
     }
 
 
